@@ -1,0 +1,16 @@
+Phần 1: So sánh toán tử ghi đè (>) và ghi nối tiếp (>>)
+| Tiêu chí so sánh | Toán tử ghi đè (`>`) | Toán tử ghi nối tiếp (`>>`) |
+| :--- | :--- | :--- |
+| **Cơ chế hoạt động** | **Ghi đè hoàn toàn:** Xóa toàn bộ nội dung cũ trong tệp (nếu có) rồi ghi dữ liệu mới vào. Nếu tệp chưa tồn tại, tệp mới sẽ được tạo. | **Ghi nối tiếp (Append):** Giữ nguyên nội dung cũ của tệp và ghi tiếp dữ liệu mới vào cuối tệp. |
+| **Rủi ro mất dữ liệu** | **Rất cao:** Nếu vô tình chạy lại lệnh hoặc gõ nhầm vào cuối tháng, toàn bộ dữ liệu tích lũy của 30 ngày trước sẽ bị xóa sạch và thay thế bằng dữ liệu mới nhất. | **Rất thấp:** Dữ liệu cũ được bảo toàn, dữ liệu mới được bổ sung an toàn xuống các dòng phía dưới. |
+| **Ngữ cảnh sử dụng thực tế** | Phù hợp cho việc **tạo báo cáo mới hoàn toàn** mỗi lần chạy (ví dụ: chạy báo cáo chớp nhoáng ca sáng, ghi đè kết quả của ca cũ). | Phù hợp cho việc **theo dõi 24/7**, lưu log hệ thống liên tục qua các ngày/tháng mà không làm mất dữ liệu cũ. |
+| **Encoding file đầu ra** | Mặc định sử dụng **UTF-16** (do `>` là alias của `Out-File`). Nếu mở bằng công cụ không hỗ trợ UTF-16 có thể bị lỗi font chữ. | Mặc định sử dụng **UTF-16** (do `>>` tương đương `Out-File -Append`). |
+Phần 2: Lựa chọn giải pháp tối ưu
+1. Giải pháp tối ưu cho việc ghi nhật ký lỗi phát sinh liên tục trong ngày
+* **Giải pháp đề xuất:** Sử dụng **`Add-Content`** hoặc **`Out-File -Append -Encoding utf8`**.
+* **Lập luận lý do:** 
+  1. Đảm bảo an toàn tuyệt đối cho dữ liệu cũ (không bị mất mát do ghi đè nhầm).
+  2. Chủ động kiểm soát được bảng mã văn bản (`-Encoding utf8`), giúp tránh tình trạng lỗi font khi mở tệp báo cáo trên các trình soạn thảo thông thường (như Notepad, VS Code).
+2. Ví dụ câu lệnh chuẩn tối ưu triển khai trong Script:
+```powershell
+Get-Content server.log | Select-String "ERROR" | Add-Content -Path daily_report.txt -Encoding utf8
